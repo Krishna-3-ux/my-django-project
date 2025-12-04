@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% load dict_extras %}
+
+{% block content %}
+  <div class="header1">
+    <a href="{% url 'dashboard' %}" class="back-btn1">Back</a>
+  </div>
+  <div class="main-content2">
+    <h2 class="section-title">Search Details</h2>
+    <!-- Search form -->
+    <form method="GET" class="search-form1">
+      <input type="text" name="search" placeholder="Search by Company Name or ID" value="{{ request.GET.search }}">
+      <button type="submit" class="search-btn1">Search</button>
+    </form>
+<div class="search-details-box">
+    {% if company %}
+        <!-- Display details of the first matching company -->
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ company.company_name }}</h3>
+            </div>
+            <div class="card-body">
+                <p><strong>Company ID:</strong> {{ company.company_id }}</p>
+                <p><strong>Password:</strong> {{ company.company_password }}</p>
+                <p><strong>Group:</strong> {{ company.group }}</p>
+                <p><strong>Account No:</strong> {{ company.account_no }}</p>
+                <p><strong>Bank Name:</strong> {{ company.bank_name }}</p>
+                <p><strong>Email:</strong> 
+                    {% if company.email %}
+                        {{ company.email|join:", " }}
+                    {% else %}
+                        No email available
+                    {% endif %}
+                </p>
+                <p><strong>First Allocated Person:</strong> {{ company.first_allocated_person }}</p>
+                <p><strong>Review Person:</strong> {{ company.review_person }}</p>
+                <p><strong>Quickbook Status:</strong> {{ company.quickbook_status }}</p>
+                <p><strong>Year:</strong> {{ company.year }}</p>
+                <p><strong>Remark:</strong> {{ company.remark }}</p>
+                <h4>Months:</h4>
+                <div class="months-list">
+                    {% for month_num, month_name in months_list %}
+                        <div class="month-item">
+                            <div class="month-info">
+                                <strong>{{ month_name }}:</strong>
+                                {% if month_num|stringformat:"s" in company.months %}
+                                    <span class="status-completed">QB</span>
+                                    <span class="assigned-person">Completed by: {{ company.months|get_item:month_num|stringformat:"s" }}</span>
+                                {% else %}
+                                    <span class="status-pending">QB Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No results found.</p>
+    {% endif %}
+</div>
+  </div>
+  
+{% endblock %}

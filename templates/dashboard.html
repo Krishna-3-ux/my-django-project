@@ -1,0 +1,45 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="body1">
+  <div class="sidebar">
+  <ul>
+    <li>
+      <a href="{% url 'client_list' %}" 
+        class="{% if request.resolver_match.url_name == 'client_list' %}active{% endif %}">
+        Client List
+      </a>
+    </li>
+    <li>
+      <a href="{% url 'search_details' %}"
+         class="{% if request.resolver_match.url_name == 'search_details' %}active{% endif %}">
+         Search Details
+      </a>
+    </li>
+    <!-- Import Excel Link -->
+    <li><a href="{% url 'import_excel' %}"
+           class="{% if request.resolver_match.url_name == 'import_excel' %}active{% endif %}">Import Excel File</a></li>
+    <!-- Export Excel Links -->
+    <li><a href="{% url 'export_excel' 'client' %}"
+           class="{% if request.resolver_match.url_name == 'export_excel' %}active{% endif %}">Export Client Data</a></li>
+    <!-- Move Logout Button to the desired location -->
+    <li class="logout">
+      <a href="{% url 'logout' %}" class="logout-btn">
+        Logout
+      </a>
+    </li>
+  </ul>
+</div>
+  <div class="main-content">
+    <h1>Welcome to Dashboard</h1>
+    <p>This area is blank for now. You can add your content here.</p>
+  </div>
+</body>
+</html>

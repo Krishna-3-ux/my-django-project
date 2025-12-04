@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Import Excel</title>
+    <style>
+        /* Style for positioning the back button */
+        .back-btn2 {
+            position: absolute;
+            top: 30px;
+            right: 50px;
+            padding: 8px 16px;
+            background-color: #f8f9fa;
+            color: #007BFF;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .back-btn2:hover {
+            background-color: #e2e6ea;
+        }
+    </style>
+</head>
+<body>
+<!-- Back Button -->
+    <a href="javascript:history.back()" class="back-btn2">Back</a>
+    <h1>Import Excel File</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="excel_file">
+        <button type="submit">Upload</button>
+    </form>
+</body>
+</html>

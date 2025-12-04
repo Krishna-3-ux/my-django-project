@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+</head>
+<body>
+    <div class="search-container">
+        <h1>Search Results</h1>
+        <form method="get" action="{% url 'search_details' %}" class="search-form1">
+            <input type="text" name="q" placeholder="Search for a company" value="{{ request.GET.q }}">
+            <button type="submit" class="search-btn1">Search</button>
+        </form>
+        <ul class="search-results-list">
+            {% for client in results %}
+                <li class="result-item">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>{{ client.company_name }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Company ID:</strong> {{ client.company_id }}</p>
+                            <p><strong>Group:</strong> {{ client.group }}</p>
+                            <p><strong>Bank Name:</strong> {{ client.bank_name }}</p>
+                            <p><strong>Account No:</strong> {{ client.account_no }}</p>
+                        </div>
+                    </div>
+                </li>
+            {% empty %}
+                <li>No results found.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

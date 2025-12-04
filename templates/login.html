@@ -1,0 +1,36 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="body1">
+<div class="container">
+  <!-- login.html -->
+  <form class="form-box" method="POST" action="{% url 'login' %}">
+    {% csrf_token %}
+    <h2>Login</h2>
+    <div class="input-box">
+        <input type="email" name="email" required />
+        <label>Email</label>
+    </div>
+    <div class="input-box">
+        <input type="password" name="password" required />
+        <label>Password</label>
+    </div>
+    <button type="submit" class="btn">Login</button>
+    <!-- Forgot Password Link -->
+    <p class="password"><a href="{% url 'forgot_password' %}">Forgot Password?</a></p> 
+    <p class="switch">Don’t have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+    <!-- Display messages in a centered way -->
+    {% for message in messages %}
+      <p class="message">{{ message }}</p>
+    {% endfor %}
+  </form>
+</div>
+</body>
+</html>

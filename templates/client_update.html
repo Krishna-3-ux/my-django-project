@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% load dict_extras %}
+
+{% block content %}
+  <div class="form-container">
+    <h1>Edit Client</h1>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-fields">
+        {{ form.as_p }}  <!-- This will render the standard fields like company_name, bank_name, etc. -->
+      </div>
+      <!-- Add Email input to allow proper format entry -->
+      <div class="form-group">
+        <label for="email">Emails (comma separated):</label>
+        <input type="text" name="email" value="{{ client.email|join:', ' }}" placeholder="Enter emails">
+      </div>
+      <fieldset>
+        <legend>Select Months and Assign Person</legend>
+        <div class="months-container">
+          {% for month_num, month_name in months_list %}
+            <div class="month-item">
+              <label for="month_{{ month_num }}">
+                <input type="checkbox" name="months" value="{{ month_num }}"
+                       {% if month_num|stringformat:"s" in client.months %}
+                       checked
+                       {% endif %}>
+                {{ month_name }}
+              </label>
+              <input type="text" name="month_person_{{ month_num }}"
+                     placeholder="Enter name for {{ month_name }}"
+                     value="{% if month_num|stringformat:'s' in client.months %}
+                             {{ client.months|get_item:month_num|stringformat:'s' }}
+                             {% else %}None{% endif %}">
+            </div>
+          {% endfor %}
+        </div>
+      </fieldset>
+      <button type="submit" class="save-btn">Save</button>
+    </form>
+    <a href="{% url 'client_list' %}" class="back-btn2">Back</a>
+  </div>
+
+{% endblock %}

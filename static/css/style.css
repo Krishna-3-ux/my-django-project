@@ -1,0 +1,568 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+.body1 {
+  background: whitesmoke;
+  display: flex;
+  justify-content: center;
+  align-items: center; 
+  height: 100vh;
+  width: 100%;
+  overflow-x: hidden;  /* Prevent horizontal scrolling */
+}
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+/* Login and Signup page whole box look */
+.form-box {
+  background: #fff;
+  padding: 40px 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+.form-box h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+}
+
+/* Login and signup page styling */
+.input-box {
+  position: relative;
+  margin-bottom: 25px;
+}
+.input-box input {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-bottom: 2px solid #aaa;
+  outline: none;
+  font-size: 16px;
+  transition: 0.3s;
+}
+.input-box label {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  color: #888;
+  pointer-events: none;
+  transition: 0.3s;
+}
+.input-box input:focus,
+.input-box input:valid {
+  border-bottom-color: #2575fc;
+}
+.input-box input:focus + label,
+.input-box input:valid + label {
+  top: -15px;
+  font-size: 13px;
+  color: #2575fc;
+}
+.password{
+    margin-top: 2%;
+}
+
+/* Login and signup page submit button styling */
+.btn {
+  width: 100%;
+  padding: 10px;
+  background: #2575fc;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+.btn:hover {
+  background: #1a5ed9;
+}
+
+/* Forgot password link and form switch styling */
+p a {
+  display: inline-block;
+  margin-top: 15px;
+  font-size: 14px;
+  color: #2575fc;
+  text-decoration: none;
+  font-weight: 500;
+}
+p a:hover {
+  text-decoration: underline;
+}
+.switch {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+}
+.switch a {
+  color: #2575fc;
+  text-decoration: none;
+  font-weight: 500;
+}
+.switch a:hover {
+  text-decoration: underline;
+}
+
+/* Center the messages */
+.message {
+  color: red !important;
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/* Dashboard Sidebar Styling */
+.sidebar {
+    width: 200px;
+    background-color: #333;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    padding-top: 20px;
+    margin: 0; /* Remove margin around the sidebar */
+    padding-left: 0; /* Remove left padding */
+}
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.sidebar li {
+    padding: 0; /* Remove padding from each list item */
+    text-align: left; /* Align text to the left */
+    padding-top: 5%;
+}
+.sidebar li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    font-size: 18px;
+    padding: 12px 20px; /* Adjust padding as per your requirement */
+    margin: 0; /* No margin */
+}
+.sidebar li a:hover,
+.sidebar li a.active {
+    background-color: #575757;
+}
+
+/* dashboard's logout button styling */
+.sidebar .logout {
+    margin-top: 50px;  /* Adjust the spacing above the logout button */
+    margin-bottom: 0; /* No bottom margin */
+    position: relative;
+    top: 410px;
+    padding-left: 5%;
+}
+.sidebar .logout-btn {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 12px 20px;
+    background-color: #e74c3c;  /* Red color for logout */
+    font-size: 18px;
+    text-align: center;
+    border-radius: 6px;
+    transition: background-color 0.3s;
+    position: absolute; /* Positioning inside the green box */
+    bottom: 10px;  /* Adjusts the button to the bottom of the green box */
+    width: 89%; /* Makes the logout button full-width */
+}
+.sidebar .logout-btn:hover {
+    background-color: #c0392b;  /* Darker red when hovered */
+}
+
+/* dashboard and search details middle place styling */
+.main-content {
+  margin-left: 620px;
+  padding: 40px;
+  width: calc(100% - 220px);
+  height: 30%;
+}
+.main-content p {
+  color: #555;
+}
+.main-content h1 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+}
+.main-content {
+  margin-left: 230px;
+  padding: 40px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  background-color: #f4f6fa;
+  position: relative;
+}
+
+/** client_list.html page searchbar & back button styling **/
+.container1 {
+    width: 99%; 
+    margin-left: 1%;
+    margin-right: 0%;
+    padding-top: 1%;
+    padding-left: 0%;
+    padding-right: 0.5%;
+    padding-bottom: 1%;
+    box-sizing: border-box;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.search-back {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+.search-form {
+    display: flex;
+    align-items: center;
+}
+.search-input {
+    padding: 8px;
+    width: 250px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    margin-right: 10px;
+}
+.search-btn {
+    padding: 8px 12px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.search-btn:hover {
+    background-color: #0056b3;
+}
+.back-btn {
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    color: #007BFF;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-decoration: none;
+    text-align: center;
+}
+.back-btn:hover {
+    background-color: #e2e6ea;
+}
+
+/* client_list.html's table Styling */
+.client-table {
+    width: 100%; /* Ensures the table uses full width */
+    border-collapse: collapse;
+    background-color: white;
+    border: 1px solid #ddd;
+    table-layout: fixed; /* Ensures no overflow by adjusting column widths automatically */
+}
+.client-table th, .client-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    word-wrap: break-word; /* Prevent overflow of text within cells */
+}
+.client-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+.client-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Client_list.html's Edit & Delete button styling */
+.action-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    color: white;
+    display: inline-block;
+    margin: 0 5px;
+}
+.edit-btn {
+    background-color: #28a745;
+}
+.edit-btn:hover {
+    background-color: #218838;
+}
+.delete-btn {
+    background-color: #dc3545;
+}
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* For no data in table */
+.no-data {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+}
+
+/* client_list.html's Add Client Button styling */
+.add-client-btn {
+    padding: 10px 20px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 20px;
+}
+.add-client-btn:hover {
+    background-color: #0056b3;
+}
+
+/* client_add & client_update month and senior person box styling */
+.form-container {
+    max-width: 800px;
+    margin: 40px auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative; /* Add relative positioning to contain the absolute back button */
+}
+
+/* Heading Style */
+h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+/* Form Fields */
+.form-fields {
+    margin-bottom: 20px;
+}
+
+/* Months and Assign Person Styling */
+.months-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.month-item {
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.month-item input[type="text"] {
+    margin-top: 10px;
+    padding: 8px;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.month-item input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Save Button Styling */
+.save-btn {
+    padding: 12px 24px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+}
+.save-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Back Button Styling */
+.back-btn2 {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px 16px;
+    background-color: #f8f9fa;
+    color: #007BFF;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    text-align: center;
+    z-index: 10;
+}
+.back-btn2:hover {
+    background-color: #e2e6ea;
+}
+@media (max-width: 768px) {
+    .months-container {
+        justify-content: center;
+    }
+
+    .month-item {
+        width: 45%;
+    }
+
+    .save-btn {
+        width: 100%;
+    }
+}
+
+/* search_details page back button styling */
+.back-btn1 {
+    background-color: #f8f9fa;
+    color: #007BFF;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    text-align: center;
+    text-decoration: none;
+}
+.back-btn1:hover {
+    background-color: #e2e6ea;
+}
+
+/* Header search details page*/
+.header1 {
+    position: absolute;
+    top: 30px;
+    right: 60px;
+}
+
+/* Search_details page styling */
+.main-content2 {
+    background-color: white;
+    padding: 30px;
+    margin-top: 60px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.section-title {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 30px;
+    color: #333;
+}
+.search-form1 {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.search-form1 input[type="text"] {
+    padding: 10px;
+    width: 250px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+}
+.search-btn1 {
+    padding: 10px 15px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.search-btn1:hover {
+    background-color: #0056b3;
+}
+
+/* Search_details page card styling */
+.search-details-box {
+    margin-top: 30px;
+}
+.card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    padding: 20px;
+}
+.card-header {
+    background-color: #007BFF;
+    color: white;
+    text-align: center;
+    padding: 12px;
+    border-radius: 5px;
+}
+.card-body {
+    padding: 15px;
+    font-size: 1.1em;
+}
+.card-body p {
+    margin: 10px 0;
+}
+.card-body h4 {
+    margin-top: 20px;
+}
+.months-list {
+    margin-top: 15px;
+}
+.month-item {
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+.status-completed {
+    color: green;
+    font-weight: bold;
+}
+.status-pending {
+    color: red;
+    font-weight: bold;
+}
+.assigned-person {
+    font-style: italic;
+    color: #555;
+}
+
+/* Search_Result page List styling */
+.search-results-list {
+    list-style: none;
+    padding: 0;
+}
+.result-item {
+    margin-bottom: 20px;
+}
+.result-item .card {
+    margin-bottom: 20px;
+}
+.card-header h3 {
+    font-size: 1.2em;
+    text-align: center;
+}
+
+/* Empty state message */
+.no-data {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+}
