@@ -21,8 +21,8 @@
                 <h3>{{ company.company_name }}</h3>
             </div>
             <div class="card-body">
-                <p><strong>Company ID:</strong> {{ company.company_id }}</p>
-                <p><strong>Password:</strong> {{ company.company_password }}</p>
+                {% comment %} <p><strong>Company ID:</strong> {{ company.company_id }}</p>
+                <p><strong>Password:</strong> {{ company.company_password }}</p> {% endcomment %}
                 <p><strong>Group:</strong> {{ company.group }}</p>
                 <p><strong>Account No:</strong> {{ company.account_no }}</p>
                 <p><strong>Bank Name:</strong> {{ company.bank_name }}</p>
@@ -35,7 +35,7 @@
                 </p>
                 <p><strong>First Allocated Person:</strong> {{ company.first_allocated_person }}</p>
                 <p><strong>Review Person:</strong> {{ company.review_person }}</p>
-                <p><strong>Quickbook Status:</strong> {{ company.quickbook_status }}</p>
+                {% comment %} <p><strong>Quickbook Status:</strong> {{ company.quickbook_status }}</p> {% endcomment %}
                 <p><strong>Year:</strong> {{ company.year }}</p>
                 <p><strong>Remark:</strong> {{ company.remark }}</p>
                 <h4>Months:</h4>

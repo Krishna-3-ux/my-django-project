@@ -19,12 +19,13 @@
             <thead>
                 <tr>
                     <th>Company Name</th>
-                    <th>Company ID</th>
+                    {% comment %} <th>Company ID</th> {% endcomment %}
                     <th>Group</th>
+                    <th>Bank Name</th>
                     <th>Account No</th>
                     <th>First Allocated Person</th>
                     <th>Review Person</th>
-                    <th>Quickbook Status</th>
+                    {% comment %} <th>Quickbook Status</th> {% endcomment %}
                     <th>Year</th>
                     <th>Month</th>
                     <th>Remark</th>
@@ -35,12 +36,13 @@
                 {% for client in clients %}
                 <tr>
                     <td>{{ client.company_name|upper }}</td>
-                    <td>{{ client.company_id|upper }}</td>
+                    {% comment %} <td>{{ client.company_id|upper }}</td> {% endcomment %}
                     <td>{{ client.group|upper }}</td>
+                    <td>{{ client.bank_name|default:"None" }}</td>
                     <td>{{ client.account_no|upper }}</td>
                     <td>{{ client.first_allocated_person|upper }}</td>
                     <td>{{ client.review_person|upper }}</td>
-                    <td>{{ client.quickbook_status|upper }}</td>
+                    {% comment %} <td>{{ client.quickbook_status|upper }}</td> {% endcomment %}
                     <td>{{ client.year }}</td>
                     <td>{{ client.months|join:", "|upper }}</td>
                     <td>{{ client.remark|upper }}</td>
@@ -57,12 +59,11 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="11" class="no-data">No data available</td>
+                    <td colspan="10" class="no-data">No data available</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         <a href="{% url 'client_add' %}" class="add-client-btn">Add New Client</a>
     </div>
-
 {% endblock %}

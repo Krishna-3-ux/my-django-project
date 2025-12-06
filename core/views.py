@@ -115,28 +115,6 @@ def dashboard(request):
     return render(request, 'dashboard.html')
 
 
-# List all clients with search of any part of company name functionality 
-# def client_list(request):
-#     query = request.GET.get('search', '')
-#     if query:
-#         # Split the search query into separate terms
-#         search_terms = query.split()
-
-#         # Initialize a Q object to combine the search conditions
-#         q_object = Q()
-
-#         # Add conditions for each search term to match company_name only
-#         for term in search_terms:
-#             q_object &= Q(company_name__icontains=term)
-
-#         # Filter clients based on the combined search conditions
-#         clients = Client.objects.filter(q_object)
-#     else:
-#         clients = Client.objects.all()
-
-#     return render(request, 'client_list.html', {'clients': clients})
-
-
 # List all clients with search functionality
 def client_list(request):
     query = request.GET.get('search', '')
@@ -155,24 +133,12 @@ def client_list(request):
     return render(request, 'client_list.html', {'clients': clients})
 
 
-def clean_email_list(email_list):
-    """Ensure the email list contains only valid email addresses."""
-    cleaned_emails = []
-    if isinstance(email_list, list):
-        for email in email_list:
-            email = email.strip()  # Remove leading/trailing spaces
-            if email and '@' in email:  # Basic email validation
-                cleaned_emails.append(email)
-    return cleaned_emails
-
-
 # Add new client
 months_list = [
     ('1', 'January'), ('2', 'February'), ('3', 'March'), ('4', 'April'),
     ('5', 'May'), ('6', 'June'), ('7', 'July'), ('8', 'August'),
     ('9', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
 ]
-
 
 def client_add(request):
     if request.method == 'POST':
@@ -323,7 +289,7 @@ def search_company(request):
         if not results:
             # If no exact match, perform a partial search on company_name, company_id, or account_no
             results = Client.objects.filter(
-                Q(company_name__icontains=query) | Q(company_id__icontains=query) | Q(account_no__icontains=query)
+                Q(company_name__icontains=query) | Q(account_no__icontains=query)
             )
     else:
         results = Client.objects.all()
@@ -340,8 +306,8 @@ def import_excel(request):
         # Print out the column names for debugging
         print("Excel Columns:", df.columns)
         # Required columns (ensure they match the exact column names in your Excel file)
-        required_columns = ['company name', 'account no', 'first allocated person', 'review person', 'quickbook status']
-        # Check for missing columns
+        required_columns = ['company name']  # Only company_name is required now
+        # Check for missing required columns
         missing_columns = [col for col in required_columns if col not in df.columns]
         if missing_columns:
             return HttpResponse(f"Missing columns: {', '.join(missing_columns)}")
@@ -351,12 +317,11 @@ def import_excel(request):
                 # Extract data from the row
                 client_data = {
                     'company_name': row['company name'],
-                    'company_id': row.get('company id', None),  # Optional field
+                    'bank_name': row.get('bank name', None), 
                     'group': row.get('group', None),
-                    'account_no': row['account no'],
-                    'first_allocated_person': row['first allocated person'],
-                    'review_person': row['review person'],
-                    'quickbook_status': row['quickbook status'],
+                    'account_no': row.get('account no', None),
+                    'first_allocated_person': row.get('first allocated person', None),
+                    'review_person': row.get('review person', None),
                 }
                 # Optional fields: 'year' and 'month'
                 if 'year' in df.columns:
@@ -379,8 +344,8 @@ def export_excel(request, list_type):
     wb = openpyxl.Workbook()
     sheet = wb.active
     sheet.append([
-        "Company Name", "Company ID", "Group", "Account No", "First Allocated Person",
-        "Review Person", "Quickbook Status", "Year", "Months", "Remark", "Email", "Bank Name"
+        "Company Name", "Group", "Account No", "First Allocated Person",
+        "Review Person", "Year", "Months", "Remark", "Email", "Bank Name"
     ])
     for client in clients:
         # Format months and assigned persons as "Month Number - Person Name"
@@ -393,12 +358,10 @@ def export_excel(request, list_type):
         months_column = ", ".join(months_assigned) if months_assigned else ''
         sheet.append([
             client.company_name,
-            client.company_id or '',
             client.group or '',
             client.account_no,
             client.first_allocated_person,
             client.review_person,
-            client.quickbook_status,
             client.year,
             months_column,  # Now contains "Month Name (Person)"
             client.remark or '',
