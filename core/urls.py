@@ -7,6 +7,7 @@ urlpatterns = [
     path('search_company/', views.search_company, name='search_company'), 
     path('', views.login_view, name='login'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('users/', views.manage_users, name='manage_users'),
     path('client_list/', views.client_list, name='client_list'),
     path('add/', views.client_add, name='client_add'),
     path('edit/<int:pk>/', views.client_update, name='client_update'),
@@ -17,5 +18,4 @@ urlpatterns = [
     path('logout/', views.user_logout, name='logout'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('password-reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
-    path('reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
 ]

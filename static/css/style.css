@@ -83,6 +83,20 @@
 .btn:hover {
   background: #1a5ed9;
 }
+.btn.secondary {
+  background: #f0f2f5;
+  color: #2575fc;
+  border: 1px solid #d0d7e2;
+}
+.btn.secondary:hover {
+  background: #e4e8ee;
+}
+.btn.danger {
+  background: #e74c3c;
+}
+.btn.danger:hover {
+  background: #c0392b;
+}
 
 /* Forgot password link and form switch styling */
 p a {
@@ -110,6 +124,14 @@ p a:hover {
   text-decoration: underline;
 }
 
+/* Page title spacing */
+.page-title {
+  text-align: center;
+  margin-top: 20%;
+  margin-bottom: 20px;
+  color: #333;
+}
+
 /* Center the messages */
 .message {
   color: red !important;
@@ -118,66 +140,107 @@ p a:hover {
   font-size: 14px;
 }
 
+/* Simple table for user management */
+.simple-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+.simple-table th,
+.simple-table td {
+  padding: 10px;
+  border-bottom: 1px solid #e5e5e5;
+  text-align: left;
+  font-size: 14px;
+}
+.simple-table th {
+  background: #f7f8fa;
+  font-weight: 600;
+}
+.simple-table tr:hover td {
+  background: #f0f4ff;
+}
+
+/* OTP row layout */
+.otp-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-top: -10px;
+  margin-bottom: 20px;
+}
+.otp-input-box {
+  flex: 1;
+  margin-bottom: 0;
+}
+.otp-btn {
+  width: auto;
+  padding: 10px 18px;
+  white-space: nowrap;
+  margin-top: 8px;
+  display: block;
+}
+
 /* Dashboard Sidebar Styling */
 .sidebar {
-    width: 200px;
-    background-color: #333;
-    color: white;
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    padding-top: 20px;
-    margin: 0; /* Remove margin around the sidebar */
-    padding-left: 0; /* Remove left padding */
+  width: 220px;
+  background-color: #333;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  padding: 20px 0 20px 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 .sidebar ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }
 .sidebar li {
-    padding: 0; /* Remove padding from each list item */
-    text-align: left; /* Align text to the left */
-    padding-top: 5%;
+  padding: 0;
+  text-align: left;
 }
 .sidebar li a {
-    color: white;
-    text-decoration: none;
-    display: block;
-    font-size: 18px;
-    padding: 12px 20px; /* Adjust padding as per your requirement */
-    margin: 0; /* No margin */
+  color: white;
+  text-decoration: none;
+  display: block;
+  font-size: 18px;
+  padding: 12px 20px;
+  margin: 0;
 }
 .sidebar li a:hover,
 .sidebar li a.active {
-    background-color: #575757;
+  background-color: #575757;
 }
 
-/* dashboard's logout button styling */
+/* dashboard's logout button stays fixed at bottom */
 .sidebar .logout {
-    margin-top: 50px;  /* Adjust the spacing above the logout button */
-    margin-bottom: 0; /* No bottom margin */
-    position: relative;
-    top: 410px;
-    padding-left: 5%;
+  margin-top: auto;
+  padding: 0 16px 0 16px;
 }
 .sidebar .logout-btn {
-    display: block;
-    color: white;
-    text-decoration: none;
-    padding: 12px 20px;
-    background-color: #e74c3c;  /* Red color for logout */
-    font-size: 18px;
-    text-align: center;
-    border-radius: 6px;
-    transition: background-color 0.3s;
-    position: absolute; /* Positioning inside the green box */
-    bottom: 10px;  /* Adjusts the button to the bottom of the green box */
-    width: 89%; /* Makes the logout button full-width */
+  display: block;
+  color: white;
+  text-decoration: none;
+  padding: 12px 20px;
+  background-color: #e74c3c;
+  font-size: 18px;
+  text-align: center;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+  width: 100%;
+  box-sizing: border-box;
 }
 .sidebar .logout-btn:hover {
-    background-color: #c0392b;  /* Darker red when hovered */
+  background-color: #c0392b;
 }
 
 /* dashboard and search details middle place styling */

@@ -1,5 +1,8 @@
 # models.py
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+
 
 class Client(models.Model):
     company_name = models.CharField(max_length=255)
@@ -21,3 +24,17 @@ class Client(models.Model):
     remark = models.TextField(blank=True, null=True)
     def __str__(self):
         return self.company_name
+
+
+class SignupOTP(models.Model):
+    email = models.EmailField()
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def is_expired(self) -> bool:
+        # OTP expires after 10 minutes
+        return self.created_at < timezone.now() - timedelta(minutes=10)
+
+    def __str__(self):
+        return f"{self.email} - {self.code} ({'used' if self.is_used else 'active'})"

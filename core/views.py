@@ -2,14 +2,9 @@
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from core.models import Client
-from core.forms import ClientForm
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-import pandas as pd
-import openpyxl
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
@@ -17,10 +12,18 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+from django.conf import settings
+from django.utils import timezone
 import logging
-logger = logging.getLogger(__name__)
 import ast
+import random
+from datetime import timedelta
+import pandas as pd
+import openpyxl
+from core.models import Client, SignupOTP
+from core.forms import ClientForm
 
+logger = logging.getLogger(__name__)
 
 def forgot_password(request):
     if request.method == 'POST':
@@ -73,49 +76,139 @@ def password_reset_confirm(request, uidb64, token):
 
 
 def signup_view(request):
+    """
+    Two-step signup with OTP verification:
+    1) User enters name + email and clicks "Send OTP" (sent to Swetang@parikhllc.com).
+    2) User enters the OTP and password, then clicks "Create Account".
+    """
     if request.method == "POST":
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        username = request.POST.get('username')
-        # Check if the email already exists in the database
+        email = (request.POST.get('email') or '').strip()
+        username = (request.POST.get('username') or '').strip()
+        password = request.POST.get('password') or ''
+        otp = (request.POST.get('otp') or '').strip()
+
+        # Common pre-check: reject if email already exists
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already registered!")
             return redirect('signup')
-        # Create a new user with a hashed password
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        messages.success(request, "Account created successfully! Please log in.")
-        return redirect('login')  # Redirect to login after signup
-    return render(request, 'signup.html')  # Render the signup form
+
+        # Step 1: Send OTP
+        if 'send_otp' in request.POST:
+            if not email or not username:
+                messages.error(request, "Please enter your name and email before requesting OTP.")
+                return redirect('signup')
+
+            code = f"{random.randint(100000, 999999):06d}"
+            SignupOTP.objects.create(email=email, code=code)
+
+            # Send the OTP to the fixed approver email
+            try:
+                send_mail(
+                    subject="Signup OTP Verification",
+                    message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=["Swetang@parikhllc.com"],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                logger.error(f"Failed to send OTP email: {e}")
+                messages.error(request, "Could not send OTP. Please try again.")
+                return redirect('signup')
+
+            messages.success(request, "OTP sent to verifier email. Enter it below to create your account.")
+            return render(request, 'signup.html', {
+                'prefill_email': email,
+                'prefill_username': username,
+                'otp_sent': True,
+            })
+
+        # Step 2: Verify OTP and create account
+        if 'create_account' in request.POST:
+            if not otp:
+                messages.error(request, "Please enter the OTP sent to the verifier email.")
+                return redirect('signup')
+
+            otp_obj = SignupOTP.objects.filter(
+                email=email, code=otp, is_used=False
+            ).order_by('-created_at').first()
+
+            if not otp_obj or otp_obj.is_expired():
+                messages.error(request, "Invalid or expired OTP. Please request a new one.")
+                return redirect('signup')
+
+            otp_obj.is_used = True
+            otp_obj.save(update_fields=['is_used'])
+
+            # Validate OTP format server-side (6 digits)
+            if not (otp.isdigit() and len(otp) == 6):
+                messages.error(request, "OTP must be 6 digits.")
+                return redirect('signup')
+
+            # Create the user
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.save()
+            messages.success(request, "Account created successfully! Please log in.")
+            return redirect('login')
+
+    # GET or fallback
+    return render(request, 'signup.html')
 
 
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
-        # Try to get the user by email
+
+        # Check if user exists with this email
         try:
-            user_obj = User.objects.get(email=email)
-            username = user_obj.username  # Use username for authentication
+            user_obj = User.objects.get(email=email)   # or CustomUser if you are using that
         except User.DoesNotExist:
             messages.error(request, "Invalid email or password.")
             return redirect('login')
-        # Authenticate the user using email and password
-        user = authenticate(request, username=username, password=password)
+
+        # Authenticate using username (Django authenticates with username internally)
+        user = authenticate(request, username=user_obj.username, password=password)
+
         if user is not None:
-            login(request, user)  # Log the user in
-            return redirect('dashboard')  # Redirect to dashboard after login
+            login(request, user)   # Login without any approval check
+            return redirect('dashboard')
         else:
             messages.error(request, "Invalid email or password.")
             return redirect('login')
-    return render(request, 'login.html')  # Render the login form
+
+    return render(request, 'login.html')
 
 
+@login_required
+def manage_users(request):
+    if not request.user.is_superuser:
+        messages.error(request, "You are not authorized to view this page.")
+        return redirect('dashboard')
+
+    employees_qs = User.objects.filter(is_superuser=False)
+    total_employees = employees_qs.count()
+
+    if request.method == "POST":
+        user_id = request.POST.get("user_id")
+        user_to_delete = get_object_or_404(employees_qs, pk=user_id)
+        user_to_delete.delete()
+        messages.success(request, "Employee deleted successfully.")
+        return redirect('manage_users')
+
+    return render(request, 'manage_users.html', {
+        'employees': employees_qs.order_by('username'),
+        'total_employees': total_employees,
+    })
+
+
+
+@login_required
 def dashboard(request):
     return render(request, 'dashboard.html')
 
 
 # List all clients with search functionality
+@login_required
 def client_list(request):
     query = request.GET.get('search', '')
     if query:
@@ -133,13 +226,14 @@ def client_list(request):
     return render(request, 'client_list.html', {'clients': clients})
 
 
-# Add new client
-months_list = [
+# Define months list at module level for reuse across functions
+MONTHS_LIST = [
     ('1', 'January'), ('2', 'February'), ('3', 'March'), ('4', 'April'),
     ('5', 'May'), ('6', 'June'), ('7', 'July'), ('8', 'August'),
     ('9', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
 ]
 
+@login_required
 def client_add(request):
     if request.method == 'POST':
         form = ClientForm(request.POST)
@@ -161,8 +255,9 @@ def client_add(request):
                     email_list = [str(email).strip() for email in email_list]
                 else:
                     email_list = []
-            except:
+            except (ValueError, SyntaxError) as e:
                 # If the input is invalid, we just keep it empty
+                logger.warning(f"Invalid email input format: {e}")
                 email_list = []
             # Save the form and attach the months data (store as dictionary)
             client = form.save(commit=False)
@@ -172,11 +267,14 @@ def client_add(request):
             return redirect('client_list')
     else:
         form = ClientForm()
-    return render(request, 'client_add.html', {'form': form, 'months': months_list})
+    return render(request, 'client_add.html', {'form': form, 'months': MONTHS_LIST})
 
 
+
+@login_required
 def client_update(request, pk):
     client = get_object_or_404(Client, pk=pk)
+    # Convert MONTHS_LIST format for this view (needs integer keys)
     months_list = [
         (1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
         (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
@@ -200,8 +298,9 @@ def client_update(request, pk):
                     email_list = [str(email).strip() for email in email_list]
                 else:
                     email_list = []
-            except:
+            except (ValueError, SyntaxError) as e:
                 # If the input is invalid, we just keep it empty
+                logger.warning(f"Invalid email input format: {e}")
                 email_list = []
             client.email = email_list  # Store the list of emails as a list
             # Initialize a dictionary for months with names
@@ -229,6 +328,7 @@ def client_update(request, pk):
 
 
 # Delete client (confirmation page)
+@login_required
 def client_delete_select(request, pk):
     client = get_object_or_404(Client, pk=pk)
     if request.method == 'POST':
@@ -252,6 +352,7 @@ def delete_client(request, client_id):
 
 
 # Search Details View
+@login_required
 def search_details(request):
     company = None
     if 'search' in request.GET:
@@ -281,6 +382,7 @@ def search_details(request):
 
 
 # Search for companies (simple search results view)
+@login_required
 def search_company(request):
     query = request.GET.get('q', '')
     if query:
@@ -296,10 +398,23 @@ def search_company(request):
     return render(request, 'search_results.html', {'results': results})
 
 
+@login_required
 def import_excel(request):
-    if request.method == 'POST' and request.FILES['excel_file']:
+    if request.method == 'POST' and request.FILES.get('excel_file'):
         excel_file = request.FILES['excel_file']
-        df = pd.read_excel(excel_file)
+        # Validate file type
+        if not excel_file.name.endswith(('.xlsx', '.xls')):
+            messages.error(request, "Invalid file type. Please upload an Excel file (.xlsx or .xls)")
+            return render(request, 'import_excel.html')
+        # Validate file size (max 10MB)
+        if excel_file.size > 10 * 1024 * 1024:
+            messages.error(request, "File size too large. Maximum size is 10MB")
+            return render(request, 'import_excel.html')
+        try:
+            df = pd.read_excel(excel_file)
+        except Exception as e:
+            messages.error(request, f"Error reading Excel file: {str(e)}")
+            return render(request, 'import_excel.html')
         # Normalize the column names: Strip spaces and convert to lowercase (optional)
         df.columns = df.columns.str.strip()  # Remove any leading/trailing spaces
         df.columns = df.columns.str.lower()  # Convert all columns to lowercase for consistency
@@ -334,28 +449,48 @@ def import_excel(request):
                 Client.objects.create(**client_data)
             except KeyError as e:
                 # In case a specific column still doesn't exist, this will catch the error
-                return HttpResponse(f"Error: Missing column or value for {e}")
-        return HttpResponse('File imported successfully!')
+                messages.error(request, f"Error: Missing column or value for {e}")
+                return render(request, 'import_excel.html')
+            except Exception as e:
+                logger.error(f"Error creating client at row {index}: {e}")
+                messages.error(request, f"Error processing row {index + 1}: {str(e)}")
+                return render(request, 'import_excel.html')
+        messages.success(request, 'File imported successfully!')
+        return redirect('client_list')
     return render(request, 'import_excel.html')
 
 
+
+@login_required
 def export_excel(request, list_type):
     clients = Client.objects.all()
     wb = openpyxl.Workbook()
     sheet = wb.active
+
     sheet.append([
         "Company Name", "Group", "Account No", "First Allocated Person",
         "Review Person", "Year", "Months", "Remark", "Email", "Bank Name"
     ])
+
     for client in clients:
-        # Format months and assigned persons as "Month Number - Person Name"
+        # Format months and assigned persons safely
         months_assigned = []
+
         if client.months:
             for month_num, person_name in client.months.items():
-                month_name = months_list[int(month_num) - 1][1]  # Get month name from the list
-                months_assigned.append(f"{month_name} ({person_name})")
-        # Join the months and assigned persons with commas
+                try:
+                    num = int(month_num)
+                    if 1 <= num <= len(MONTHS_LIST):
+                        month_name = MONTHS_LIST[num - 1][1]
+                        months_assigned.append(f"{month_name} ({person_name})")
+                    else:
+                        continue  # skip invalid month numbers
+                except (ValueError, TypeError, IndexError) as e:
+                    logger.warning(f"Invalid month format for client {client.id}: {e}")
+                    continue  # skip invalid month formats
+
         months_column = ", ".join(months_assigned) if months_assigned else ''
+
         sheet.append([
             client.company_name,
             client.group or '',
@@ -363,15 +498,17 @@ def export_excel(request, list_type):
             client.first_allocated_person,
             client.review_person,
             client.year,
-            months_column,  # Now contains "Month Name (Person)"
+            months_column,
             client.remark or '',
             ", ".join(client.email) if client.email else '',
             client.bank_name or ''
         ])
+
     response = HttpResponse(content_type="application/vnd.openpyxl.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename=client_list.xlsx'
     wb.save(response)
     return response
+
 
 
 def user_logout(request):

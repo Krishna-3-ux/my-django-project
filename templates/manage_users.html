@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Users</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="body1">
+  <div class="container">
+    <div class="form-box">
+      <h2 class="page-title">User Management</h2>
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      <p><strong>Total Employees:</strong> {{ total_employees }}</p>
+
+      <table class="simple-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for emp in employees %}
+            <tr>
+              <td>{{ emp.username }}</td>
+              <td>{{ emp.email }}</td>
+              <td>
+                <form method="POST" action="{% url 'manage_users' %}" onsubmit="return confirm('Delete this user?');">
+                  {% csrf_token %}
+                  <input type="hidden" name="user_id" value="{{ emp.id }}">
+                  <button type="submit" class="btn danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" style="text-align:center;">No employees found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <p class="switch"><a href="{% url 'dashboard' %}">Back to Dashboard</a></p>
+    </div>
+  </div>
+</body>
+</html>
+

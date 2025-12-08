@@ -12,19 +12,50 @@
   <div class="container">
     <form class="form-box" method="POST" action="{% url 'signup' %}">
       {% csrf_token %}
+
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
       <div class="input-box">
-        <input type="text" name="username" required />
+        <input type="text" name="username" value="{{ prefill_username|default:'' }}" required />
         <label>Full Name</label>
       </div>
       <div class="input-box">
-        <input type="email" name="email" required />
+        <input type="email" name="email" value="{{ prefill_email|default:'' }}" required />
         <label>Email</label>
       </div>
+
+
+
       <div class="input-box">
         <input type="password" name="password" required />
         <label>Password</label>
       </div>
-      <button type="submit" class="btn">Create Account</button>
+
+      <div class="otp-row">
+        <div class="input-box otp-input-box">
+          <input
+            type="text"
+            name="otp"
+            maxlength="6"
+            minlength="6"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            placeholder=""
+            {% if not otp_sent %}disabled{% endif %}
+          />
+          <label>OTP</label>
+          <button type="submit" name="send_otp" value="1" class="btn secondary otp-btn">Send OTP</button>
+        </div>
+        
+      </div>
+
+      <button type="submit" name="create_account" value="1" class="btn">Create Account</button>
       <p class="switch">Already have an account? <a href="{% url 'login' %}">Login</a></p>
     </form>
   </div>

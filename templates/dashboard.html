@@ -23,6 +23,14 @@
          Search Details
       </a>
     </li>
+    {% if request.user.is_superuser %}
+    <li>
+      <a href="{% url 'manage_users' %}"
+         class="{% if request.resolver_match.url_name == 'manage_users' %}active{% endif %}">
+         Manage Users
+      </a>
+    </li>
+    {% endif %}
     <!-- Import Excel Link -->
     <li><a href="{% url 'import_excel' %}"
            class="{% if request.resolver_match.url_name == 'import_excel' %}active{% endif %}">Import Excel File</a></li>
