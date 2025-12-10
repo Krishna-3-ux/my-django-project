@@ -120,15 +120,12 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+
 # ------------------------------------------------------------------------------
 # STATIC FILES
 # ------------------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-if DEBUG:
-    STATICFILES_DIRS = [BASE_DIR / 'static']
-else:
-    STATICFILES_DIRS = []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ------------------------------------------------------------------------------
@@ -178,10 +175,11 @@ LOGGING = {
         'django.template': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': True},
     },
 }
-# Render PostgreSQL automatic config
+
+# Automatically use DATABASE_URL from environment variables (Render provides it)
 if os.environ.get("DATABASE_URL"):
     DATABASES["default"] = dj_database_url.config(
         default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True
+        conn_max_age=600,  # Keep connection open for 10 minutes (performance boost)
+        ssl_require=True    # Ensure SSL is required (necessary for Render)
     )
