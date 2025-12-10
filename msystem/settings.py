@@ -7,6 +7,9 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+import dj_database_url
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
@@ -24,7 +27,8 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 if os.environ.get("ALLOWED_HOSTS"):
     ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS").split(",") if h.strip()]
 else:
-    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com", "*"]
+
 
 # ------------------------------------------------------------------------------
 # INSTALLED APPS
@@ -121,7 +125,10 @@ USE_TZ = True
 # ------------------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+if DEBUG:
+    STATICFILES_DIRS = [BASE_DIR / 'static']
+else:
+    STATICFILES_DIRS = []
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ------------------------------------------------------------------------------
@@ -171,3 +178,10 @@ LOGGING = {
         'django.template': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': True},
     },
 }
+# Render PostgreSQL automatic config
+if os.environ.get("DATABASE_URL"):
+    DATABASES["default"] = dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True
+    )
