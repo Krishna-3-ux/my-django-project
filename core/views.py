@@ -12,6 +12,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
+from django.core.cache import cache
 from django.conf import settings
 from django.utils import timezone
 import logging
@@ -24,6 +25,23 @@ from core.models import Client, SignupOTP
 from core.forms import ClientForm
 
 logger = logging.getLogger(__name__)
+
+
+def _throttle(request, name: str, limit: int, window_seconds: int) -> bool:
+    """
+    Simple per-IP throttle using Django cache.
+    Returns True if the caller exceeded the limit within the window.
+    """
+    ip = request.META.get("REMOTE_ADDR", "")
+    key = f"throttle:{name}:{ip}"
+    now = timezone.now().timestamp()
+    data = cache.get(key, {"count": 0, "start": now})
+    # reset window if expired
+    if now - data.get("start", now) > window_seconds:
+        data = {"count": 0, "start": now}
+    data["count"] += 1
+    cache.set(key, data, timeout=window_seconds)
+    return data["count"] > limit
 
 def forgot_password(request):
     if request.method == 'POST':
