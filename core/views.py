@@ -19,6 +19,7 @@ import logging
 import ast
 import random
 from datetime import timedelta
+import os
 import pandas as pd
 import openpyxl
 from core.models import Client, SignupOTP
@@ -214,9 +215,9 @@ def signup_view(request):
                 return redirect('signup')
 
             # Create the user
-            user = User.objects.create_user(username=username, email=email, password=password)
-            user.save()
-            messages.success(request, "Account created successfully! Please log in.")
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+        messages.success(request, "Account created successfully! Please log in.")
             return redirect('login')
 
     # GET or fallback
@@ -480,7 +481,7 @@ def import_excel(request):
             messages.error(request, "File size too large. Maximum size is 10MB")
             return render(request, 'import_excel.html')
         try:
-            df = pd.read_excel(excel_file)
+        df = pd.read_excel(excel_file)
         except Exception as e:
             messages.error(request, f"Error reading Excel file: {str(e)}")
             return render(request, 'import_excel.html')
