@@ -27,7 +27,8 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 if os.environ.get("ALLOWED_HOSTS"):
     ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS").split(",") if h.strip()]
 else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com", "*"]
+    # Default for local development
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # ------------------------------------------------------------------------------
@@ -126,7 +127,15 @@ USE_TZ = True
 # ------------------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [BASE_DIR / 'static']  # Where to find static files during development
+
+# WhiteNoise configuration for production static file serving
+# Use CompressedStaticFilesStorage (simpler, more reliable) instead of Manifest
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+else:
+    # During development, use default storage
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # ------------------------------------------------------------------------------
 # MEDIA (if you later add file uploads, use S3; Heroku filesystem is ephemeral)
