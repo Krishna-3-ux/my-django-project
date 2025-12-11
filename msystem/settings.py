@@ -27,8 +27,8 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 if os.environ.get("ALLOWED_HOSTS"):
     ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS").split(",") if h.strip()]
 else:
-    # Default for local development
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    # Default for local development and Render
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
 
 
 # ------------------------------------------------------------------------------

@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Setup</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .setup-container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        .setup-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .setup-section h3 {
+            margin-top: 0;
+            color: #2575fc;
+        }
+        .btn-setup {
+            background: #2575fc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-setup:hover {
+            background: #1a5ed9;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .input-box {
+            margin-bottom: 15px;
+        }
+        .input-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body class="body1">
+    <div class="setup-container">
+        <h1>🚀 Deployment Setup</h1>
+        
+        <div class="warning-box">
+            <strong>⚠️ Security Warning:</strong> This page should be removed or protected after initial setup!
+        </div>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <!-- Step 1: Run Migrations -->
+        <div class="setup-section">
+            <h3>Step 1: Run Database Migrations</h3>
+            <p>This will create all necessary database tables.</p>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="migrate">
+                <div class="input-box">
+                    <label>Setup Key (set SETUP_KEY env var):</label>
+                    <input type="text" name="setup_key" required placeholder="Enter setup key">
+                </div>
+                <button type="submit" class="btn-setup">Run Migrations</button>
+            </form>
+        </div>
+
+        <!-- Step 2: Create Superuser -->
+        <div class="setup-section">
+            <h3>Step 2: Create Superuser Account</h3>
+            <p>Create an admin account to access the system.</p>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_superuser">
+                <div class="input-box">
+                    <label>Setup Key:</label>
+                    <input type="text" name="setup_key" required placeholder="Enter setup key">
+                </div>
+                <div class="input-box">
+                    <label>Username:</label>
+                    <input type="text" name="username" required placeholder="admin">
+                </div>
+                <div class="input-box">
+                    <label>Email:</label>
+                    <input type="email" name="email" required placeholder="admin@example.com">
+                </div>
+                <div class="input-box">
+                    <label>Password:</label>
+                    <input type="password" name="password" required placeholder="Strong password">
+                </div>
+                <button type="submit" class="btn-setup">Create Superuser</button>
+            </form>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #f0f4ff; border-radius: 5px;">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Set <code>SETUP_KEY</code> environment variable in Render dashboard (any random string)</li>
+                <li>Run Step 1 (Migrations) first</li>
+                <li>Then run Step 2 (Create Superuser)</li>
+                <li>After setup, remove this URL from your code for security!</li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>
+

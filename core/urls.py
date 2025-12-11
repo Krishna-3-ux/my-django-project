@@ -18,4 +18,6 @@ urlpatterns = [
     path('logout/', views.user_logout, name='logout'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('password-reset/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    # Setup endpoint (REMOVE AFTER INITIAL SETUP FOR SECURITY)
+    path('setup/', views.setup_deployment, name='setup_deployment'),
 ]
