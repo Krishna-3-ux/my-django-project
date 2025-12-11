@@ -157,7 +157,7 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
 
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")  # optional if you switch later
+SENDGRID_API_KEY = os.environ.get("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")  # optional if you switch later
 
 # ------------------------------------------------------------------------------
 # LOGIN
