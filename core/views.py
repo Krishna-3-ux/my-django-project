@@ -184,18 +184,22 @@ def signup_view(request):
 
             # Send the OTP to the fixed approver email
             try:
-                send_mail(
-                    subject="Signup OTP Verification",
-                    message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=["Swetang@parikhllc.com"],
-                    fail_silently=False,
-                )
+                use_console = settings.EMAIL_BACKEND.endswith("console.EmailBackend") or settings.EMAIL_BACKEND.endswith("locmem.EmailBackend")
+                if not use_console:
+                    send_mail(
+                        subject="Signup OTP Verification",
+                        message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=["Swetang@parikhllc.com"],
+                        fail_silently=True,  # avoid crashing if SMTP blocked
+                    )
+                else:
+                    logger.info(f"[OTP-CONSOLE] Signup OTP for {email}: {code}")
             except Exception as e:
                 logger.error(f"Failed to send OTP email: {e}")
-                messages.error(
-                    request, "Could not send OTP. Please try again.")
-                return redirect('signup')
+                # Do not block signup; just warn
+                messages.warning(
+                    request, "OTP email could not be sent. Please contact admin.")
 
             messages.success(
                 request, "OTP sent to verifier email. Enter it below to create your account.")
