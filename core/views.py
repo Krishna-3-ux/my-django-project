@@ -32,17 +32,19 @@ def setup_deployment(request):
     Web-based setup for Render deployment when Shell is not available.
     This should be disabled/removed after initial setup for security.
     """
-    if request.method == 'POST':
+    method = request.POST if request.method == 'POST' else request.GET
+
+    if method:
         # Check if setup is already done (basic security check)
-        setup_key = request.POST.get('setup_key', '')
+        setup_key = method.get('setup_key', '')
         expected_key = os.environ.get('SETUP_KEY', 'CHANGE_THIS_IN_PRODUCTION')
-        
+
         if setup_key != expected_key:
             messages.error(request, "Invalid setup key.")
             return render(request, 'core/setup_deployment.html')
-        
-        action = request.POST.get('action')
-        
+
+        action = method.get('action')
+
         if action == 'migrate':
             try:
                 from django.core.management import call_command
@@ -51,16 +53,16 @@ def setup_deployment(request):
             except Exception as e:
                 messages.error(request, f"✗ Migration error: {str(e)}")
                 logger.error(f"Migration error: {e}")
-        
+
         elif action == 'create_superuser':
-            username = request.POST.get('username', '').strip()
-            email = request.POST.get('email', '').strip()
-            password = request.POST.get('password', '')
-            
+            username = method.get('username', '').strip()
+            email = method.get('email', '').strip()
+            password = method.get('password', '')
+
             if not all([username, email, password]):
                 messages.error(request, "All fields are required.")
                 return render(request, 'core/setup_deployment.html')
-            
+
             try:
                 if User.objects.filter(username=username).exists():
                     messages.warning(request, f"User '{username}' already exists.")
@@ -70,9 +72,9 @@ def setup_deployment(request):
             except Exception as e:
                 messages.error(request, f"✗ Error creating superuser: {str(e)}")
                 logger.error(f"Superuser creation error: {e}")
-        
+
         return render(request, 'core/setup_deployment.html')
-    
+
     return render(request, 'core/setup_deployment.html')
 
 
