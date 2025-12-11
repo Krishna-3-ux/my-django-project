@@ -18,8 +18,8 @@ from django.utils import timezone
 import logging
 import ast
 import random
-from datetime import timedelta
 import os
+from datetime import timedelta
 import pandas as pd
 import openpyxl
 from core.models import Client, SignupOTP
@@ -215,9 +215,9 @@ def signup_view(request):
                 return redirect('signup')
 
             # Create the user
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        messages.success(request, "Account created successfully! Please log in.")
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.save()
+            messages.success(request, "Account created successfully! Please log in.")
             return redirect('login')
 
     # GET or fallback
