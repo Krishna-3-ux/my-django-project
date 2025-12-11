@@ -238,7 +238,12 @@ def signup_view(request):
             return redirect('login')
 
     # GET or fallback
-    return render(request, 'signup.html')
+    return render(request, 'signup.html', {
+    'prefill_email': '',
+    'prefill_username': '',
+    'otp_sent': False,
+})
+
 
 
 def login_view(request):
