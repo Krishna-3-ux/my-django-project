@@ -183,26 +183,21 @@ def signup_view(request):
             SignupOTP.objects.create(email=email, code=code)
 
             # Send the OTP to the fixed approver email
-            try:
-                send_mail(
-                    subject="Signup OTP Verification",
-                    message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=["Swetang@parikhllc.com"],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                logger.error(f"Failed to send OTP email: {e}")
-                messages.error(request, "Could not send OTP. Please try again.")
-                return redirect('signup')
+        try:
+            send_mail(
+                subject="Signup OTP Verification",
+                message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=["Swetang@parikhllc.com"],  # Ensure this is the correct recipient
+                fail_silently=False,
+            )
+            logger.info(f"OTP sent to {email}")  # Log success message
+        except Exception as e:
+            logger.error(f"Failed to send OTP email: {e}")  # Log error details
+            messages.error(request, "Could not send OTP. Please try again.")  # Display error message
+            return redirect('signup')
 
-            messages.success(
-                request, "OTP sent to verifier email. Enter it below to create your account.")
-            return render(request, 'signup.html', {
-                'prefill_email': email,
-                'prefill_username': username,
-                'otp_sent': True,
-            })
+
 
         # Step 2: Verify OTP and create account
         if 'create_account' in request.POST:

@@ -7,9 +7,12 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Load environment variables from .env file
 load_dotenv(BASE_DIR / ".env")
+
 
 # ------------------------------------------------------------------------------
 # SECURITY
@@ -144,6 +147,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # EMAIL (FIXED – no broken SendGrid backend)
 # ------------------------------------------------------------------------------
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+
 
 # Gmail SMTP example (you can set in .env)
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
