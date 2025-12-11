@@ -193,8 +193,7 @@ def signup_view(request):
                 )
             except Exception as e:
                 logger.error(f"Failed to send OTP email: {e}")
-                messages.error(
-                    request, "Could not send OTP. Please try again.")
+                messages.error(request, "Could not send OTP. Please try again.")
                 return redirect('signup')
 
             messages.success(

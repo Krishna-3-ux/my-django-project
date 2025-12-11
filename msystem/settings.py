@@ -143,10 +143,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ------------------------------------------------------------------------------
 # EMAIL (FIXED – no broken SendGrid backend)
 # ------------------------------------------------------------------------------
-EMAIL_BACKEND = os.environ.get(
-    "EMAIL_BACKEND",
-    "django.core.mail.backends.smtp.EmailBackend"  # Safe default
-)
+EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 
 # Gmail SMTP example (you can set in .env)
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
