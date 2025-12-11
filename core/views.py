@@ -28,6 +28,8 @@ from core.forms import ClientForm
 logger = logging.getLogger(__name__)
 
 # Special setup view for deployment (one-time use, should be disabled after setup)
+
+
 def setup_deployment(request):
     """
     Web-based setup for Render deployment when Shell is not available.
@@ -50,7 +52,8 @@ def setup_deployment(request):
             try:
                 from django.core.management import call_command
                 call_command('migrate', verbosity=0, interactive=False)
-                messages.success(request, "✓ Migrations completed successfully!")
+                messages.success(
+                    request, "✓ Migrations completed successfully!")
             except Exception as e:
                 messages.error(request, f"✗ Migration error: {str(e)}")
                 logger.error(f"Migration error: {e}")
@@ -66,12 +69,16 @@ def setup_deployment(request):
 
             try:
                 if User.objects.filter(username=username).exists():
-                    messages.warning(request, f"User '{username}' already exists.")
+                    messages.warning(
+                        request, f"User '{username}' already exists.")
                 else:
-                    User.objects.create_superuser(username=username, email=email, password=password)
-                    messages.success(request, f"✓ Superuser '{username}' created successfully!")
+                    User.objects.create_superuser(
+                        username=username, email=email, password=password)
+                    messages.success(
+                        request, f"✓ Superuser '{username}' created successfully!")
             except Exception as e:
-                messages.error(request, f"✗ Error creating superuser: {str(e)}")
+                messages.error(
+                    request, f"✗ Error creating superuser: {str(e)}")
                 logger.error(f"Superuser creation error: {e}")
 
         return render(request, 'core/setup_deployment.html')
@@ -95,6 +102,7 @@ def _throttle(request, name: str, limit: int, window_seconds: int) -> bool:
     cache.set(key, data, timeout=window_seconds)
     return data["count"] > limit
 
+
 def forgot_password(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -115,7 +123,8 @@ def forgot_password(request):
             'reset_link': reset_link,
         })
         # Send email
-        send_mail(subject, message, 'no-reply@yourdomain.com', [email], html_message=message)
+        send_mail(subject, message, 'no-reply@yourdomain.com',
+                  [email], html_message=message)
         messages.success(request, "Password reset email sent!")
         return redirect('login')
     return render(request, 'core/forgot_password.html')
@@ -135,7 +144,8 @@ def password_reset_confirm(request, uidb64, token):
             if password == confirm_password:
                 user.set_password(password)
                 user.save()
-                messages.success(request, "Your password has been reset successfully.")
+                messages.success(
+                    request, "Your password has been reset successfully.")
                 return redirect('login')
             else:
                 messages.error(request, "Passwords do not match.")
@@ -165,7 +175,8 @@ def signup_view(request):
         # Step 1: Send OTP
         if 'send_otp' in request.POST:
             if not email or not username:
-                messages.error(request, "Please enter your name and email before requesting OTP.")
+                messages.error(
+                    request, "Please enter your name and email before requesting OTP.")
                 return redirect('signup')
 
             code = f"{random.randint(100000, 999999):06d}"
@@ -182,10 +193,12 @@ def signup_view(request):
                 )
             except Exception as e:
                 logger.error(f"Failed to send OTP email: {e}")
-                messages.error(request, "Could not send OTP. Please try again.")
+                messages.error(
+                    request, "Could not send OTP. Please try again.")
                 return redirect('signup')
 
-            messages.success(request, "OTP sent to verifier email. Enter it below to create your account.")
+            messages.success(
+                request, "OTP sent to verifier email. Enter it below to create your account.")
             return render(request, 'signup.html', {
                 'prefill_email': email,
                 'prefill_username': username,
@@ -195,7 +208,8 @@ def signup_view(request):
         # Step 2: Verify OTP and create account
         if 'create_account' in request.POST:
             if not otp:
-                messages.error(request, "Please enter the OTP sent to the verifier email.")
+                messages.error(
+                    request, "Please enter the OTP sent to the verifier email.")
                 return redirect('signup')
 
             otp_obj = SignupOTP.objects.filter(
@@ -203,7 +217,8 @@ def signup_view(request):
             ).order_by('-created_at').first()
 
             if not otp_obj or otp_obj.is_expired():
-                messages.error(request, "Invalid or expired OTP. Please request a new one.")
+                messages.error(
+                    request, "Invalid or expired OTP. Please request a new one.")
                 return redirect('signup')
 
             otp_obj.is_used = True
@@ -215,9 +230,11 @@ def signup_view(request):
                 return redirect('signup')
 
             # Create the user
-            user = User.objects.create_user(username=username, email=email, password=password)
+            user = User.objects.create_user(
+                username=username, email=email, password=password)
             user.save()
-            messages.success(request, "Account created successfully! Please log in.")
+            messages.success(
+                request, "Account created successfully! Please log in.")
             return redirect('login')
 
     # GET or fallback
@@ -231,13 +248,15 @@ def login_view(request):
 
         # Check if user exists with this email
         try:
-            user_obj = User.objects.get(email=email)   # or CustomUser if you are using that
+            # or CustomUser if you are using that
+            user_obj = User.objects.get(email=email)
         except User.DoesNotExist:
             messages.error(request, "Invalid email or password.")
             return redirect('login')
 
         # Authenticate using username (Django authenticates with username internally)
-        user = authenticate(request, username=user_obj.username, password=password)
+        user = authenticate(
+            request, username=user_obj.username, password=password)
 
         if user is not None:
             login(request, user)   # Login without any approval check
@@ -271,7 +290,6 @@ def manage_users(request):
     })
 
 
-
 @login_required
 def dashboard(request):
     return render(request, 'dashboard.html')
@@ -288,7 +306,8 @@ def client_list(request):
         q_object = Q()
         # Add conditions for each search term to match both company_name and group fields
         for term in search_terms:
-            q_object |= Q(company_name__icontains=term) | Q(group__icontains=term)
+            q_object |= Q(company_name__icontains=term) | Q(
+                group__icontains=term)
         # Filter clients based on the combined search conditions
         clients = Client.objects.filter(q_object)
     else:
@@ -303,6 +322,7 @@ MONTHS_LIST = [
     ('9', 'September'), ('10', 'October'), ('11', 'November'), ('12', 'December')
 ]
 
+
 @login_required
 def client_add(request):
     if request.method == 'POST':
@@ -312,9 +332,11 @@ def client_add(request):
             months_with_names = {}
             for i in range(1, 13):  # Loop through all months (1-12)
                 month_key = f"month_person_{i}"
-                month_name = request.POST.get(month_key)  # Get entered name for the month
+                # Get entered name for the month
+                month_name = request.POST.get(month_key)
                 if month_name:  # Only store months with a name
-                    months_with_names[str(i)] = month_name  # Store month number and person name
+                    # Store month number and person name
+                    months_with_names[str(i)] = month_name
             # Handle email input
             email_input = request.POST.get('email', '')
             try:
@@ -338,7 +360,6 @@ def client_add(request):
     else:
         form = ClientForm()
     return render(request, 'client_add.html', {'form': form, 'months': MONTHS_LIST})
-
 
 
 @login_required
@@ -377,13 +398,15 @@ def client_update(request, pk):
             months_with_names = {}
             # Process the month-person assignments
             for month_num, month_name in months_list:
-                checkbox_value = request.POST.getlist('months')  # Use getlist to get all selected months
+                # Use getlist to get all selected months
+                checkbox_value = request.POST.getlist('months')
                 if str(month_num) in checkbox_value:
                     person = request.POST.get(f'month_person_{month_num}')
                     if person and person != "None":  # Avoid storing "None" for empty names
                         months_with_names[str(month_num)] = person
                 elif str(month_num) in client.months:
-                    months_with_names[str(month_num)] = client.months[str(month_num)]
+                    months_with_names[str(month_num)
+                                      ] = client.months[str(month_num)]
             # Update the client object with the modified month-person mappings
             client.months = months_with_names
             client.save()
@@ -410,8 +433,10 @@ def client_delete_select(request, pk):
 @login_required
 def delete_client(request, client_id):
     if not request.user.is_superuser:
-        messages.error(request, "You are not authorized to delete this company.")
-        return redirect('client_list')  # Or wherever you want to redirect the user
+        messages.error(
+            request, "You are not authorized to delete this company.")
+        # Or wherever you want to redirect the user
+        return redirect('client_list')
     try:
         client = Client.objects.get(id=client_id)
         client.delete()
@@ -429,7 +454,8 @@ def search_details(request):
         search_term = request.GET['search']
         # If the search term matches a full company name, perform an exact match search
         if search_term:
-            company = Client.objects.filter(company_name__iexact=search_term).first()
+            company = Client.objects.filter(
+                company_name__iexact=search_term).first()
         # If no exact match is found, proceed with partial search by company_name only
         if not company:
             search_terms = search_term.split()
@@ -461,7 +487,8 @@ def search_company(request):
         if not results:
             # If no exact match, perform a partial search on company_name, company_id, or account_no
             results = Client.objects.filter(
-                Q(company_name__icontains=query) | Q(account_no__icontains=query)
+                Q(company_name__icontains=query) | Q(
+                    account_no__icontains=query)
             )
     else:
         results = Client.objects.all()
@@ -474,35 +501,42 @@ def import_excel(request):
         excel_file = request.FILES['excel_file']
         # Validate file type
         if not excel_file.name.endswith(('.xlsx', '.xls')):
-            messages.error(request, "Invalid file type. Please upload an Excel file (.xlsx or .xls)")
+            messages.error(
+                request, "Invalid file type. Please upload an Excel file (.xlsx or .xls)")
             return render(request, 'import_excel.html')
         # Validate file size (max 10MB)
         if excel_file.size > 10 * 1024 * 1024:
-            messages.error(request, "File size too large. Maximum size is 10MB")
+            messages.error(
+                request, "File size too large. Maximum size is 10MB")
             return render(request, 'import_excel.html')
         try:
-        df = pd.read_excel(excel_file)
+            df = pd.read_excel(excel_file)  # This line should be indented
         except Exception as e:
             messages.error(request, f"Error reading Excel file: {str(e)}")
             return render(request, 'import_excel.html')
+        
         # Normalize the column names: Strip spaces and convert to lowercase (optional)
         df.columns = df.columns.str.strip()  # Remove any leading/trailing spaces
-        df.columns = df.columns.str.lower()  # Convert all columns to lowercase for consistency
+        # Convert all columns to lowercase for consistency
+        df.columns = df.columns.str.lower()
         # Print out the column names for debugging
         print("Excel Columns:", df.columns)
         # Required columns (ensure they match the exact column names in your Excel file)
-        required_columns = ['company name']  # Only company_name is required now
+        # Only company_name is required now
+        required_columns = ['company name']
         # Check for missing required columns
-        missing_columns = [col for col in required_columns if col not in df.columns]
+        missing_columns = [
+            col for col in required_columns if col not in df.columns]
         if missing_columns:
             return HttpResponse(f"Missing columns: {', '.join(missing_columns)}")
+        
         # Iterate through the rows and save the data to the database
         for index, row in df.iterrows():
             try:
                 # Extract data from the row
                 client_data = {
                     'company_name': row['company name'],
-                    'bank_name': row.get('bank name', None), 
+                    'bank_name': row.get('bank name', None),
                     'group': row.get('group', None),
                     'account_no': row.get('account no', None),
                     'first_allocated_person': row.get('first allocated person', None),
@@ -512,23 +546,27 @@ def import_excel(request):
                 if 'year' in df.columns:
                     client_data['year'] = row['year']
                 if 'month' in df.columns:
-                    client_data['months'] = row['month']  # Assuming 'month' is a string or list
+                    # Assuming 'month' is a string or list
+                    client_data['months'] = row['month']
                 # Handle the optional 'remark' field
                 client_data['remark'] = row.get('remark', None)
                 # Create a new Client instance and save to the database
                 Client.objects.create(**client_data)
             except KeyError as e:
                 # In case a specific column still doesn't exist, this will catch the error
-                messages.error(request, f"Error: Missing column or value for {e}")
+                messages.error(
+                    request, f"Error: Missing column or value for {e}")
                 return render(request, 'import_excel.html')
             except Exception as e:
                 logger.error(f"Error creating client at row {index}: {e}")
-                messages.error(request, f"Error processing row {index + 1}: {str(e)}")
+                messages.error(
+                    request, f"Error processing row {index + 1}: {str(e)}")
                 return render(request, 'import_excel.html')
+        
         messages.success(request, 'File imported successfully!')
         return redirect('client_list')
+    
     return render(request, 'import_excel.html')
-
 
 
 @login_required
@@ -556,7 +594,8 @@ def export_excel(request, list_type):
                     else:
                         continue  # skip invalid month numbers
                 except (ValueError, TypeError, IndexError) as e:
-                    logger.warning(f"Invalid month format for client {client.id}: {e}")
+                    logger.warning(
+                        f"Invalid month format for client {client.id}: {e}")
                     continue  # skip invalid month formats
 
         months_column = ", ".join(months_assigned) if months_assigned else ''
@@ -574,11 +613,11 @@ def export_excel(request, list_type):
             client.bank_name or ''
         ])
 
-    response = HttpResponse(content_type="application/vnd.openpyxl.spreadsheetml.sheet")
+    response = HttpResponse(
+        content_type="application/vnd.openpyxl.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename=client_list.xlsx'
     wb.save(response)
     return response
-
 
 
 def user_logout(request):
