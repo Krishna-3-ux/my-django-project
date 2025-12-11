@@ -188,16 +188,14 @@ def signup_view(request):
                 subject="Signup OTP Verification",
                 message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=["Swetang@parikhllc.com"],  # Ensure this is the correct recipient
+                recipient_list=["Swetang@parikhllc.com"],
                 fail_silently=False,
             )
-            logger.info(f"OTP sent to {email}")  # Log success message
+            logger.info(f"OTP sent to {email}")
         except Exception as e:
-            logger.error(f"Failed to send OTP email: {e}")  # Log error details
-            messages.error(request, "Could not send OTP. Please try again.")  # Display error message
+            logger.error(f"Failed to send OTP email: {e}")
+            messages.error(request, "Could not send OTP. Please try again.")
             return redirect('signup')
-
-
 
         # Step 2: Verify OTP and create account
         if 'create_account' in request.POST:
