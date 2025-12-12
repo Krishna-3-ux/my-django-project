@@ -158,9 +158,14 @@ def password_reset_confirm(request, uidb64, token):
 def signup_view(request):
     """
     Two-step signup with OTP verification:
-    1) User enters name + email and clicks "Send OTP" (sent to Swetang@parikhllc.com).
+    1) User enters name + email and clicks "Send OTP".
     2) User enters the OTP and password, then clicks "Create Account".
     """
+    # Default values for pre-filling username and email
+    prefill_username = ''
+    prefill_email = ''
+    otp_sent = False
+
     if request.method == "POST":
         email = (request.POST.get('email') or '').strip()
         username = (request.POST.get('username') or '').strip()
@@ -198,7 +203,6 @@ def signup_view(request):
                 logger.info(f"OTP email sent successfully to Swetang@parikhllc.com")
             except Exception as e:
                 logger.error(f"Failed to send OTP email: {e}")
-                # Show more helpful error message
                 error_msg = str(e)
                 if "Authentication Required" in error_msg or "gsmtp" in error_msg:
                     messages.error(
@@ -249,7 +253,11 @@ def signup_view(request):
             return redirect('login')
 
     # GET or fallback
-    return render(request, 'signup.html')
+    return render(request, 'signup.html', {
+        'prefill_username': prefill_username,
+        'prefill_email': prefill_email,
+        'otp_sent': otp_sent,
+    })
 
 
 def login_view(request):
