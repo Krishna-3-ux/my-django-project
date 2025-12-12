@@ -6,13 +6,12 @@ Environment-first; no Heroku-specific logic.
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+
 import dj_database_url
-from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-# Load environment variables from .env file
 load_dotenv(BASE_DIR / ".env")
-
 
 # ------------------------------------------------------------------------------
 # SECURITY
@@ -21,12 +20,16 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY environment variable is required")
 
+# Default to False for safety; set DEBUG=True explicitly in .env for local dev
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
+# ALLOWED_HOSTS: require explicit env; default to localhost for dev
 if os.environ.get("ALLOWED_HOSTS"):
     ALLOWED_HOSTS = [h.strip() for h in os.environ.get("ALLOWED_HOSTS").split(",") if h.strip()]
 else:
+    # Default for local development and Render
     ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
+
 
 # ------------------------------------------------------------------------------
 # INSTALLED APPS
@@ -42,17 +45,18 @@ INSTALLED_APPS = [
     # third-party
     'import_export',
     'rest_framework',
+    'anymail',  # For SendGrid/Mailgun API email support
 
     # local apps
     'core',
 ]
 
 # ------------------------------------------------------------------------------
-# MIDDLEWARE
+# MIDDLEWARE (include WhiteNoise for static files)
 # ------------------------------------------------------------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # serves static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -62,7 +66,7 @@ MIDDLEWARE = [
 ]
 
 # ------------------------------------------------------------------------------
-# URL + WSGI
+# URL and WSGI
 # ------------------------------------------------------------------------------
 ROOT_URLCONF = 'msystem.urls'
 WSGI_APPLICATION = 'msystem.wsgi.application'
@@ -73,6 +77,7 @@ WSGI_APPLICATION = 'msystem.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # keep your existing templates directory
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -87,8 +92,7 @@ TEMPLATES = [
 ]
 
 # ------------------------------------------------------------------------------
-# DATABASES (Postgres)
-# ------------------------------------------------------------------------------
+# DATABASES: environment-driven Postgres
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -99,13 +103,6 @@ DATABASES = {
         'PORT': os.environ.get('POSTGRES_PORT', ''),
     }
 }
-
-if os.environ.get("DATABASE_URL"):
-    DATABASES["default"] = dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True
-    )
 
 # ------------------------------------------------------------------------------
 # AUTH PASSWORD VALIDATORS
@@ -125,60 +122,78 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+
 # ------------------------------------------------------------------------------
 # STATIC FILES
 # ------------------------------------------------------------------------------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR / 'static']  # Where to find static files during development
 
+# WhiteNoise configuration for production static file serving
+# Use CompressedStaticFilesStorage (simpler, more reliable) instead of Manifest
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 else:
+    # During development, use default storage
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # ------------------------------------------------------------------------------
-# MEDIA FILES
+# MEDIA (if you later add file uploads, use S3; Heroku filesystem is ephemeral)
 # ------------------------------------------------------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ------------------------------------------------------------------------------
-# EMAIL (FIXED – no broken SendGrid backend)
+# EMAIL SETTINGS (environment driven)
+# Supports both SMTP (Gmail) and API-based (SendGrid/Mailgun) email services
 # ------------------------------------------------------------------------------
-EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+# Check if SendGrid API key is provided (preferred for Render)
+SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
 
+# Check if console backend is requested (for debugging)
+EMAIL_BACKEND_ENV = os.environ.get("EMAIL_BACKEND", "")
 
-# Gmail SMTP example (you can set in .env)
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
-EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
-
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
-
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")  # optional if you switch later
+if EMAIL_BACKEND_ENV:
+    # Use explicitly set backend (e.g., console for debugging)
+    EMAIL_BACKEND = EMAIL_BACKEND_ENV
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
+elif SENDGRID_API_KEY:
+    # Use SendGrid API (more reliable on Render)
+    EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
+    ANYMAIL = {
+        "SENDGRID_API_KEY": SENDGRID_API_KEY,
+    }
+    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
+else:
+    # Fallback to SMTP (Gmail) for local development
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+    EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+    EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+    EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
 
 # ------------------------------------------------------------------------------
-# LOGIN
+# LOGIN / AUTH
 # ------------------------------------------------------------------------------
 LOGIN_URL = 'login'
 
 # ------------------------------------------------------------------------------
-# PRIMARY KEY
+# Django default primary key field
 # ------------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ------------------------------------------------------------------------------
-# SECURITY SETTINGS
+# Additional security settings when DEBUG is False
 # ------------------------------------------------------------------------------
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
 # ------------------------------------------------------------------------------
-# LOGGING
+# Logging (keeps your existing config but it's useful on Heroku)
 # ------------------------------------------------------------------------------
 LOGGING = {
     'version': 1,
@@ -190,3 +205,11 @@ LOGGING = {
         'django.template': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': True},
     },
 }
+
+# Automatically use DATABASE_URL from environment variables (Render provides it)
+if os.environ.get("DATABASE_URL"):
+    DATABASES["default"] = dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,  # Keep connection open for 10 minutes (performance boost)
+        ssl_require=True    # Ensure SSL is required (necessary for Render)
+    )

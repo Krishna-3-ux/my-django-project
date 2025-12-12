@@ -183,19 +183,36 @@ def signup_view(request):
             SignupOTP.objects.create(email=email, code=code)
 
             # Send the OTP to the fixed approver email
-        try:
-            send_mail(
-                subject="Signup OTP Verification",
-                message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=["Swetang@parikhllc.com"],
-                fail_silently=False,
-            )
-            logger.info(f"OTP sent to {email}")
-        except Exception as e:
-            logger.error(f"Failed to send OTP email: {e}")
-            messages.error(request, "Could not send OTP. Please try again.")
-            return redirect('signup')
+            try:
+                from_email = settings.DEFAULT_FROM_EMAIL or "krish3na0@gmail.com"
+                send_mail(
+                    subject="Signup OTP Verification",
+                    message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
+                    from_email=from_email,
+                    recipient_list=["Swetang@parikhllc.com"],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                error_msg = str(e)
+                logger.error(f"Failed to send OTP email: {error_msg}")
+                logger.error(f"Email backend: {settings.EMAIL_BACKEND}")
+                logger.error(f"From email: {settings.DEFAULT_FROM_EMAIL}")
+                # Show more detailed error in development, generic in production
+                if settings.DEBUG:
+                    messages.error(
+                        request, f"Could not send OTP. Error: {error_msg}")
+                else:
+                    messages.error(
+                        request, "Could not send OTP. Please try again. Check server logs for details.")
+                return redirect('signup')
+
+            messages.success(
+                request, "OTP sent to verifier email. Enter it below to create your account.")
+            return render(request, 'signup.html', {
+                'prefill_email': email,
+                'prefill_username': username,
+                'otp_sent': True,
+            })
 
         # Step 2: Verify OTP and create account
         if 'create_account' in request.POST:
@@ -230,12 +247,7 @@ def signup_view(request):
             return redirect('login')
 
     # GET or fallback
-    return render(request, 'signup.html', {
-    'prefill_email': '',
-    'prefill_username': '',
-    'otp_sent': False,
-})
-
+    return render(request, 'signup.html')
 
 
 def login_view(request):
