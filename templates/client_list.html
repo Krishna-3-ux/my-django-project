@@ -6,7 +6,7 @@
             <div class="search-back">
                 <!-- Search Bar -->
                 <form method="GET" class="search-form">
-                    <input type="text" name="search" placeholder="Search by Company Name" class="search-input" value="{{ request.GET.search }}">
+                    <input type="text" name="search" placeholder="Search by Company Name" class="search-input" value="{{ search|default:'' }}">
                     <button type="submit" class="search-btn">Search</button>
                 </form>
                 <!-- Back Button -->

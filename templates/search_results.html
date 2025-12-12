@@ -8,7 +8,7 @@
     <div class="search-container">
         <h1>Search Results</h1>
         <form method="get" action="{% url 'search_details' %}" class="search-form1">
-            <input type="text" name="q" placeholder="Search for a company" value="{{ request.GET.q }}">
+            <input type="text" name="q" placeholder="Search for a company" value="{{ search|default:'' }}">
             <button type="submit" class="search-btn1">Search</button>
         </form>
         <ul class="search-results-list">

@@ -10,8 +10,8 @@
     <h2 class="section-title">Search Details</h2>
     <!-- Search form -->
     <form method="GET" class="search-form1">
-      <input type="text" name="search" placeholder="Search by Company Name or ID" value="{{ request.GET.search }}">
-      <button type="submit" class="search-btn1">Search</button>
+        <input type="text" name="search" placeholder="Search by Company Name or ID" value="{{ search|default:'' }}">
+        <button type="submit" class="search-btn1">Search</button>
     </form>
 <div class="search-details-box">
     {% if company %}

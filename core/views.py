@@ -317,7 +317,7 @@ def dashboard(request):
 # List all clients with search functionality
 @login_required
 def client_list(request):
-    query = request.GET.get('search', '')
+    query = request.GET.get('search', '')  # Default to empty string if 'search' is not provided
     if query:
         # Split the search query into separate terms
         search_terms = query.split()
@@ -325,13 +325,13 @@ def client_list(request):
         q_object = Q()
         # Add conditions for each search term to match both company_name and group fields
         for term in search_terms:
-            q_object |= Q(company_name__icontains=term) | Q(
-                group__icontains=term)
+            q_object |= Q(company_name__icontains=term) | Q(group__icontains=term)
         # Filter clients based on the combined search conditions
         clients = Client.objects.filter(q_object)
     else:
         clients = Client.objects.all()
-    return render(request, 'client_list.html', {'clients': clients})
+    return render(request, 'client_list.html', {'clients': clients, 'search': query})  # Pass 'search' to the template
+
 
 
 # Define months list at module level for reuse across functions
@@ -469,21 +469,15 @@ def delete_client(request, client_id):
 @login_required
 def search_details(request):
     company = None
-    if 'search' in request.GET:
-        search_term = request.GET['search']
+    search_term = request.GET.get('search', '')  # Use default empty string if 'search' is not provided
+    if search_term:
         # If the search term matches a full company name, perform an exact match search
-        if search_term:
-            company = Client.objects.filter(
-                company_name__iexact=search_term).first()
-        # If no exact match is found, proceed with partial search by company_name only
+        company = Client.objects.filter(company_name__iexact=search_term).first()
         if not company:
             search_terms = search_term.split()
-            # Initialize a Q object to combine conditions for the search terms
             q_object = Q()
-            # Add conditions for each term to match company_name with better handling of word order
             for term in search_terms:
                 q_object &= Q(company_name__icontains=term)
-            # Perform the search and get the first matching company
             company = Client.objects.filter(q_object).first()
     months_list = [
         (1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
@@ -492,26 +486,26 @@ def search_details(request):
     ]
     return render(request, 'search_details.html', {
         'company': company,
-        'months_list': months_list,  # Pass months_list here
+        'months_list': months_list,
+        'search': search_term  # Pass 'search' to the template
     })
+
 
 
 # Search for companies (simple search results view)
 @login_required
 def search_company(request):
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '')  # Default to empty string if 'q' is not provided
     if query:
-        # Check if the query exactly matches a company name
         results = Client.objects.filter(company_name__iexact=query)
         if not results:
-            # If no exact match, perform a partial search on company_name, company_id, or account_no
             results = Client.objects.filter(
-                Q(company_name__icontains=query) | Q(
-                    account_no__icontains=query)
+                Q(company_name__icontains=query) | Q(account_no__icontains=query)
             )
     else:
         results = Client.objects.all()
-    return render(request, 'search_results.html', {'results': results})
+    return render(request, 'search_results.html', {'results': results, 'search': query})  # Pass 'search' to the template
+
 
 
 @login_required
