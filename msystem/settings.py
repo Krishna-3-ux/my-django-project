@@ -157,10 +157,7 @@ if SENDGRID_API_KEY:
     ANYMAIL = {
         "SENDGRID_API_KEY": SENDGRID_API_KEY,
     }
-    # Use verified sender email (must be verified in SendGrid)
     DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
-    # Set reply-to to same email for better deliverability
-    DEFAULT_REPLY_TO = DEFAULT_FROM_EMAIL
     # Log that SendGrid is being used (for debugging)
     import logging
     logger = logging.getLogger(__name__)

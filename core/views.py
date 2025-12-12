@@ -188,7 +188,6 @@ def signup_view(request):
                 email_backend = getattr(settings, 'EMAIL_BACKEND', 'Unknown')
                 logger.info(f"Using email backend: {email_backend}")
                 
-                # Send email with proper from/reply-to headers
                 send_mail(
                     subject="Signup OTP Verification",
                     message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
