@@ -184,26 +184,29 @@ def signup_view(request):
 
             # Send the OTP to the fixed approver email
             try:
-                from_email = settings.DEFAULT_FROM_EMAIL or "krish3na0@gmail.com"
+                # Log which email backend is being used (for debugging)
+                email_backend = getattr(settings, 'EMAIL_BACKEND', 'Unknown')
+                logger.info(f"Using email backend: {email_backend}")
+                
+                # Send email with proper from/reply-to headers
                 send_mail(
                     subject="Signup OTP Verification",
                     message=f"Signup request for {email}.\nOTP: {code}\nValid for 10 minutes.",
-                    from_email=from_email,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=["Swetang@parikhllc.com"],
                     fail_silently=False,
                 )
+                logger.info(f"OTP email sent successfully to Swetang@parikhllc.com")
             except Exception as e:
+                logger.error(f"Failed to send OTP email: {e}")
+                # Show more helpful error message
                 error_msg = str(e)
-                logger.error(f"Failed to send OTP email: {error_msg}")
-                logger.error(f"Email backend: {settings.EMAIL_BACKEND}")
-                logger.error(f"From email: {settings.DEFAULT_FROM_EMAIL}")
-                # Show more detailed error in development, generic in production
-                if settings.DEBUG:
+                if "Authentication Required" in error_msg or "gsmtp" in error_msg:
                     messages.error(
-                        request, f"Could not send OTP. Error: {error_msg}")
+                        request, "Email service not configured. Please set SENDGRID_API_KEY in Render environment variables.")
                 else:
                     messages.error(
-                        request, "Could not send OTP. Please try again. Check server logs for details.")
+                        request, f"Could not send OTP. Error: {error_msg}")
                 return redirect('signup')
 
             messages.success(

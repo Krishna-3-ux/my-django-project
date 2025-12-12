@@ -151,20 +151,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Check if SendGrid API key is provided (preferred for Render)
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
 
-# Check if console backend is requested (for debugging)
-EMAIL_BACKEND_ENV = os.environ.get("EMAIL_BACKEND", "")
-
-if EMAIL_BACKEND_ENV:
-    # Use explicitly set backend (e.g., console for debugging)
-    EMAIL_BACKEND = EMAIL_BACKEND_ENV
-    DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
-elif SENDGRID_API_KEY:
+if SENDGRID_API_KEY:
     # Use SendGrid API (more reliable on Render)
     EMAIL_BACKEND = "anymail.backends.sendgrid.EmailBackend"
     ANYMAIL = {
         "SENDGRID_API_KEY": SENDGRID_API_KEY,
     }
+    # Use verified sender email (must be verified in SendGrid)
     DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
+    # Set reply-to to same email for better deliverability
+    DEFAULT_REPLY_TO = DEFAULT_FROM_EMAIL
+    # Log that SendGrid is being used (for debugging)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info("Using SendGrid API for email delivery")
 else:
     # Fallback to SMTP (Gmail) for local development
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -174,6 +174,10 @@ else:
     EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
     EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
     DEFAULT_FROM_EMAIL = EMAIL_HOST_USER or os.environ.get("DEFAULT_FROM_EMAIL", "krish3na0@gmail.com")
+    # Log that SMTP is being used (for debugging)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.warning("SENDGRID_API_KEY not set - using SMTP fallback. This may not work on Render free tier.")
 
 # ------------------------------------------------------------------------------
 # LOGIN / AUTH
