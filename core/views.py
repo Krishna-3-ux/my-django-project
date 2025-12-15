@@ -105,28 +105,53 @@ def _throttle(request, name: str, limit: int, window_seconds: int) -> bool:
 
 def forgot_password(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').strip()
+        if not email:
+            messages.error(request, "Please enter your email address.")
+            return render(request, 'core/forgot_password.html')
+        
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            messages.error(request, "No user with this email found.")
-            return render(request, 'core/forgot_password.html')
+            # Don't reveal if email exists (security best practice)
+            messages.success(request, "If an account exists with this email, a password reset link has been sent.")
+            return redirect('login')
+        
         # Generate token
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(str(user.pk).encode('utf-8'))
-        # Create password reset link
-        reset_link = f"{request.scheme}://{get_current_site(request).domain}{reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})}"
-        # Render the email template with user info
-        subject = "Password Reset Request"
-        message = render_to_string('core/password_reset_email.html', {
-            'user': user,
-            'reset_link': reset_link,
-        })
-        # Send email
-        send_mail(subject, message, 'no-reply@yourdomain.com',
-                  [email], html_message=message)
-        messages.success(request, "Password reset email sent!")
-        return redirect('login')
+        try:
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(str(user.pk).encode('utf-8'))
+            # Create password reset link
+            reset_link = f"{request.scheme}://{get_current_site(request).domain}{reverse('password_reset_confirm', kwargs={'uidb64': uid, 'token': token})}"
+            # Render the email template with user info
+            subject = "Password Reset Request"
+            message = render_to_string('core/password_reset_email.html', {
+                'user': user,
+                'reset_link': reset_link,
+            })
+            # Send email using configured email backend (SendGrid or SMTP)
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                html_message=message,
+                fail_silently=False,
+            )
+            logger.info(f"Password reset email sent successfully to {email}")
+            messages.success(request, "Password reset email sent! Please check your inbox.")
+            return redirect('login')
+        except Exception as e:
+            logger.error(f"Failed to send password reset email: {e}")
+            error_msg = str(e)
+            if "Authentication Required" in error_msg or "gsmtp" in error_msg:
+                messages.error(
+                    request, "Email service not configured. Please contact administrator.")
+            else:
+                messages.error(
+                    request, f"Could not send password reset email. Error: {error_msg}")
+            return render(request, 'core/forgot_password.html')
+    
     return render(request, 'core/forgot_password.html')
 
 
@@ -252,8 +277,11 @@ def signup_view(request):
                 request, "Account created successfully! Please log in.")
             return redirect('login')
 
-    # GET or fallback
+    # GET or fallback - always provide default context
     return render(request, 'signup.html', {
+        'prefill_username': prefill_username,
+        'prefill_email': prefill_email,
+        'otp_sent': otp_sent,
         'prefill_username': prefill_username,
         'prefill_email': prefill_email,
         'otp_sent': otp_sent,
